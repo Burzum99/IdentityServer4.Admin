@@ -35,6 +35,7 @@ using Skoruba.IdentityServer4.Admin.Configuration.Constants;
 using Skoruba.IdentityServer4.Admin.Configuration.Interfaces;
 using Skoruba.IdentityServer4.Admin.EntityFramework.Interfaces;
 using Skoruba.IdentityServer4.Admin.Helpers.Localization;
+using Microsoft.IdentityModel.Logging;
 
 namespace Skoruba.IdentityServer4.Admin.Helpers
 {
@@ -98,16 +99,19 @@ namespace Skoruba.IdentityServer4.Admin.Helpers
         {
             var migrationsAssembly = typeof(Startup).GetTypeInfo().Assembly.GetName().Name;
 
+            var connectionString = "Server=db, 1433;Database=PevaarDisIdentityServerSkorubaBase;User ID=sa;Password=Your_password123";
+
+
             // Config DB for identity
             services.AddDbContext<TIdentityDbContext>(options =>
-                options.UseSqlServer(configuration.GetConnectionString(ConfigurationConsts.IdentityDbConnectionStringKey),
+                options.UseSqlServer(connectionString,
                     sql => sql.MigrationsAssembly(migrationsAssembly)));
 
             // Config DB from existing connection
             services.AddConfigurationDbContext<TConfigurationDbContext>(options =>
             {
                 options.ConfigureDbContext = b =>
-                    b.UseSqlServer(configuration.GetConnectionString(ConfigurationConsts.ConfigurationDbConnectionStringKey),
+                    b.UseSqlServer(connectionString,
                         sql => sql.MigrationsAssembly(migrationsAssembly));
             });
 
@@ -115,14 +119,13 @@ namespace Skoruba.IdentityServer4.Admin.Helpers
             services.AddOperationalDbContext<TPersistedGrantDbContext>(options =>
             {
                 options.ConfigureDbContext = b =>
-                    b.UseSqlServer(configuration.GetConnectionString(ConfigurationConsts.PersistedGrantDbConnectionStringKey),
+                    b.UseSqlServer(connectionString,
                         sql => sql.MigrationsAssembly(migrationsAssembly));
             });
 
             // Log DB from existing connection
             services.AddDbContext<TLogDbContext>(options =>
-                options.UseSqlServer(
-                    configuration.GetConnectionString(ConfigurationConsts.AdminLogDbConnectionStringKey),
+                options.UseSqlServer(connectionString,
                     optionsSql => optionsSql.MigrationsAssembly(migrationsAssembly)));
         }
 
@@ -164,10 +167,26 @@ namespace Skoruba.IdentityServer4.Admin.Helpers
         /// <param name="app"></param>
         public static void UseSecurityHeaders(this IApplicationBuilder app)
         {
+            /* COMMENTED
             app.UseForwardedHeaders(new ForwardedHeadersOptions()
             {
-                ForwardedHeaders = ForwardedHeaders.XForwardedFor | ForwardedHeaders.XForwardedProto
+                ForwardedHeaders = ForwardedHeaders.XForwardedFor | ForwardedHeaders.XForwardedProto,
+                    RequireHeaderSymmetry = false
+
             });
+            */
+            var forwardOptions = new ForwardedHeadersOptions
+            {
+                ForwardedHeaders = ForwardedHeaders.XForwardedFor | ForwardedHeaders.XForwardedProto,
+                RequireHeaderSymmetry = false
+            };
+
+            forwardOptions.KnownNetworks.Clear();
+            forwardOptions.KnownProxies.Clear();
+
+            app.UseForwardedHeaders(forwardOptions);
+
+
             app.UseHsts(options => options.MaxAge(days: 365));
             app.UseXXssProtection(options => options.EnabledWithBlockMode());
             app.UseXContentTypeOptions();
@@ -412,9 +431,12 @@ namespace Skoruba.IdentityServer4.Admin.Helpers
                     options.DefaultForbidScheme = CookieAuthenticationDefaults.AuthenticationScheme;
                     options.DefaultSignInScheme = CookieAuthenticationDefaults.AuthenticationScheme;
                     options.DefaultSignOutScheme = CookieAuthenticationDefaults.AuthenticationScheme;
+
+
                 })
                     .AddCookie(CookieAuthenticationDefaults.AuthenticationScheme,
                         options => { options.Cookie.Name = AuthenticationConsts.IdentityAdminCookieName; });
+
             }
             else
             {
@@ -439,21 +461,22 @@ namespace Skoruba.IdentityServer4.Admin.Helpers
                     .AddOpenIdConnect(AuthenticationConsts.OidcAuthenticationScheme, options =>
                     {
                         options.Authority = adminConfiguration.IdentityServerBaseUrl;
-#if DEBUG
-                        options.RequireHttpsMetadata = false;
-#else
-                        options.RequireHttpsMetadata = true;
-#endif
                         options.ClientId = adminConfiguration.ClientId;
                         options.ClientSecret = adminConfiguration.ClientSecret;
                         options.ResponseType = adminConfiguration.OidcResponseType;
-
+                        options.RequireHttpsMetadata = false;
                         options.Scope.Clear();
-                        foreach (var scope in adminConfiguration.Scopes)
+                        var scopes = new string[]
+                        {
+                          "openid",
+                          "profile",
+                          "email",
+                          "roles"
+                        };
+                        foreach (var scope in scopes)
                         {
                             options.Scope.Add(scope);
                         }
-
                         options.ClaimActions.MapJsonKey(AuthenticationConsts.RoleClaim, AuthenticationConsts.RoleClaim, AuthenticationConsts.RoleClaim);
 
                         options.SaveTokens = true;
@@ -464,7 +487,12 @@ namespace Skoruba.IdentityServer4.Admin.Helpers
                         {
                             NameClaimType = JwtClaimTypes.Name,
                             RoleClaimType = JwtClaimTypes.Role,
-                        };
+                            ValidIssuers = new[]
+                            {
+                                "http://localhost:9000",
+                                "http://sts.test:88",
+                            }
+                    };
 
                         options.Events = new OpenIdConnectEvents
                         {

@@ -14,7 +14,7 @@ namespace Skoruba.IdentityServer4.Admin.ViewComponents
 
         public IViewComponentResult Invoke()
         {
-            var identityServerUrl = _configuration.AdminConfiguration.IdentityServerBaseUrl;
+            var identityServerUrl = "http://localhost:9000";
             
             return View(model: identityServerUrl);
         }

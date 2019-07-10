@@ -155,11 +155,11 @@ namespace Skoruba.IdentityServer4.STS.Identity.Helpers
                 iis.AuthenticationDisplayName = "Windows";
                 iis.AutomaticAuthentication = false;
             });
-
+            /*
             var authenticationBuilder = services.AddAuthentication();
 
             AddExternalProviders(authenticationBuilder, configuration);
-
+            */
             AddIdentityServer<TConfigurationDbContext, TPersistedGrantDbContext, TUserIdentity>(services, configuration, logger, hostingEnvironment);
         }
 
@@ -240,12 +240,13 @@ namespace Skoruba.IdentityServer4.STS.Identity.Helpers
                     options.Events.RaiseInformationEvents = true;
                     options.Events.RaiseFailureEvents = true;
                     options.Events.RaiseSuccessEvents = true;
+
                 })
                 .AddAspNetIdentity<TUserIdentity>()
                 .AddIdentityServerStoresWithDbContexts<TConfigurationDbContext, TPersistedGrantDbContext>(configuration, hostingEnvironment);
 
             builder.AddCustomSigningCredential(configuration, logger);
-            builder.AddCustomValidationKey(configuration, logger);
+            //builder.AddCustomValidationKey(configuration, logger);
         }
 
         /// <summary>

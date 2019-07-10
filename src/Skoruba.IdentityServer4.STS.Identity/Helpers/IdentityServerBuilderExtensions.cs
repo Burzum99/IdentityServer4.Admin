@@ -27,56 +27,57 @@ namespace Skoruba.IdentityServer4.STS.Identity.Helpers
         /// <returns></returns>
         public static IIdentityServerBuilder AddCustomSigningCredential(this IIdentityServerBuilder builder, IConfiguration configuration, ILogger logger)
         {
-            var certificateConfiguration = configuration.GetSection(nameof(CertificateConfiguration)).Get<CertificateConfiguration>();
+            //var certificateConfiguration = configuration.GetSection(nameof(CertificateConfiguration)).Get<CertificateConfiguration>();
 
-            if (certificateConfiguration.UseSigningCertificateThumbprint)
-            {
-                if (string.IsNullOrWhiteSpace(certificateConfiguration.SigningCertificateThumbprint))
-                {
-                    throw new Exception(SigningCertificateThumbprintNotFound);
-                }
+            //if (certificateConfiguration.UseSigningCertificateThumbprint)
+            //{
+            //    if (string.IsNullOrWhiteSpace(certificateConfiguration.SigningCertificateThumbprint))
+            //    {
+            //        throw new Exception(SigningCertificateThumbprintNotFound);
+            //    }
 
-                var certStore = new X509Store(StoreName.My, StoreLocation.LocalMachine);
-                certStore.Open(OpenFlags.ReadOnly);
+            //    var certStore = new X509Store(StoreName.My, StoreLocation.LocalMachine);
+            //    certStore.Open(OpenFlags.ReadOnly);
 
-                var certCollection = certStore.Certificates.Find(X509FindType.FindByThumbprint, certificateConfiguration.SigningCertificateThumbprint, true);
-                if (certCollection.Count == 0)
-                {
-                    throw new Exception(CertificateNotFound);
-                }
+            //    var certCollection = certStore.Certificates.Find(X509FindType.FindByThumbprint, certificateConfiguration.SigningCertificateThumbprint, true);
+            //    if (certCollection.Count == 0)
+            //    {
+            //        throw new Exception(CertificateNotFound);
+            //    }
 
-                var certificate = certCollection[0];
+            //    var certificate = certCollection[0];
 
-                builder.AddSigningCredential(certificate);
-            }
-            else if (certificateConfiguration.UseSigningCertificatePfxFile)
-            {
-                if (string.IsNullOrWhiteSpace(certificateConfiguration.SigningCertificatePfxFilePath))
-                {
-                    throw new Exception(SigningCertificatePathIsNotSpecified);
-                }
+            //    builder.AddSigningCredential(certificate);
+            //}
+            //else if (certificateConfiguration.UseSigningCertificatePfxFile)
+            //{
+            //    if (string.IsNullOrWhiteSpace(certificateConfiguration.SigningCertificatePfxFilePath))
+            //    {
+            //        throw new Exception(SigningCertificatePathIsNotSpecified);
+            //    }
 
-                if (File.Exists(certificateConfiguration.SigningCertificatePfxFilePath))
-                {
+            //    if (File.Exists(certificateConfiguration.SigningCertificatePfxFilePath))
+            //    {
 
-                    try
-                    {
-                        builder.AddSigningCredential(new X509Certificate2(certificateConfiguration.SigningCertificatePfxFilePath, certificateConfiguration.SigningCertificatePfxFilePassword));
-                    }
-                    catch (CryptographicException e)
-                    {
-                        logger.LogError($"There was an error adding the key file - during the creation of the signing key {e.Message}");
-                    }
-                }
-                else
-                {
-                    throw new Exception($"Signing key file: {certificateConfiguration.SigningCertificatePfxFilePath} not found");
-                }
-            }
-            else if (certificateConfiguration.UseTemporarySigningKeyForDevelopment)
-            {
-                builder.AddDeveloperSigningCredential();
-            }
+            //        try
+            //        {
+            //            builder.AddSigningCredential(new X509Certificate2(certificateConfiguration.SigningCertificatePfxFilePath, certificateConfiguration.SigningCertificatePfxFilePassword));
+            //        }
+            //        catch (CryptographicException e)
+            //        {
+            //            logger.LogError($"There was an error adding the key file - during the creation of the signing key {e.Message}");
+            //        }
+            //    }
+            //    else
+            //    {
+            //        throw new Exception($"Signing key file: {certificateConfiguration.SigningCertificatePfxFilePath} not found");
+            //    }
+            //}
+            //else if (certificateConfiguration.UseTemporarySigningKeyForDevelopment)
+            //{
+            //    builder.AddDeveloperSigningCredential();
+            //}
+            builder.AddDeveloperSigningCredential();
 
             return builder;
         }

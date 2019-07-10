@@ -1,0 +1,51 @@
+version: '3.4'
+
+services:
+    api.test:
+        build:
+          context: .
+          dockerfile: src/Skoruba.IdentityServer4.Admin.Api/Dockerfile
+        ports: 
+            - "5001:90"
+        environment:
+            - ASPNETCORE_URLS=http://+:90
+            - ASPNETCORE_ENVIRONMENT=Development
+        depends_on:
+            - sts.test
+            - admin.test
+            - db
+    sts.test:
+        build:
+          context: .
+          dockerfile: src/Skoruba.IdentityServer4.STS.Identity/Dockerfile
+        ports: 
+            - "9000:88"
+        environment:
+            - ASPNETCORE_URLS=http://+:88
+            - ASPNETCORE_ENVIRONMENT=Development # <== otherwise will fail because of Skoruba.IdentityServer4.STS.Identity.Helpers.StartupHelpers:91
+            - "ConnectionStrings:AdminConnection=Server=db, 1433;Database=PevaarDisIdentityServerSkorubaBase;User ID=sa;Password=Your_password123"
+        depends_on:
+            - db
+    admin.test:
+        build:
+          context: .
+          dockerfile: src/Skoruba.IdentityServer4.Admin/Dockerfile
+        ports: 
+            - "5000:89"
+        environment:
+            - ASPNETCORE_URLS=http://+:89
+            - ASPNETCORE_ENVIRONMENT=Development # <== otherwise will fail because of certificate error
+            - "ConnectionStrings:AdminConnection=Server=db, 1433;Database=PevaarDisIdentityServerSkorubaBase;User ID=sa;Password=Your_password123"
+        depends_on:
+            - sts.test
+    db:
+      image: "mcr.microsoft.com/mssql/server"
+      ports: 
+        - "0.0.0.0:9101:1433"
+      environment:
+        SA_PASSWORD: "Your_password123"
+        ACCEPT_EULA: "Y"
+networks:
+    default:
+        external: 
+            name: skoruba-identityserver-network

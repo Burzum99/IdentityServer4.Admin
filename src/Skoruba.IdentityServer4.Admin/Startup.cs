@@ -4,6 +4,7 @@ using Microsoft.AspNetCore.Hosting;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
+using Microsoft.IdentityModel.Logging;
 using Skoruba.IdentityServer4.Admin.BusinessLogic.Identity.Dtos.Identity;
 using Skoruba.IdentityServer4.Admin.Configuration.Interfaces;
 using Skoruba.IdentityServer4.Admin.EntityFramework.Shared.DbContexts;
@@ -40,6 +41,8 @@ namespace Skoruba.IdentityServer4.Admin
 
         public void ConfigureServices(IServiceCollection services)
         {
+            IdentityModelEventSource.ShowPII = true; //Add this line
+
             // Get Configuration
             services.ConfigureRootConfiguration(Configuration);
             var rootConfiguration = services.BuildServiceProvider().GetService<IRootConfiguration>();
@@ -52,7 +55,6 @@ namespace Skoruba.IdentityServer4.Admin
             
             // Add exception filters in MVC
             services.AddMvcExceptionFilters();
-
             // Add all dependencies for IdentityServer Admin
             services.AddAdminServices<IdentityServerConfigurationDbContext, IdentityServerPersistedGrantDbContext, AdminLogDbContext>();
 
@@ -91,6 +93,14 @@ namespace Skoruba.IdentityServer4.Admin
             {
                 app.UseExceptionHandler("/Home/Error");
             }
+            /*
+            app.Use(async (httpcontext, next) =>
+            {
+                    await next();
+                    string location = httpcontext.Response.Headers[Microsoft.Net.Http.Headers.HeaderNames.Location];
+                    httpcontext.Response.Headers[Microsoft.Net.Http.Headers.HeaderNames.Location] =
+                            location.Replace("sts.test:88", "localhost:9000");
+            });*/
 
             // Add custom security headers
             app.UseSecurityHeaders();
