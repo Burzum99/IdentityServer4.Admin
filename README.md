@@ -4,4 +4,4 @@
 
 > The administration of the IdentityServer4 and Asp.Net Core Identity
 
-Aim of this fork is to implement Docker in a way as this requires no setup and can be run from the go
+Aim of this fork is to implement Docker, so it requires no setup and can be run right away
