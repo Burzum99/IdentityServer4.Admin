@@ -1,11 +1,13 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.IO;
+using System.Reflection;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.OpenApi.Models;
 using Skoruba.IdentityServer4.Admin.Api.Configuration;
-using Skoruba.IdentityServer4.Admin.Api.Configuration.Authorization;
 using Skoruba.IdentityServer4.Admin.Api.Configuration.Constants;
 using Skoruba.IdentityServer4.Admin.Api.ExceptionHandling;
 using Skoruba.IdentityServer4.Admin.Api.Helpers;
@@ -14,6 +16,7 @@ using Skoruba.IdentityServer4.Admin.BusinessLogic.Identity.Dtos.Identity;
 using Skoruba.IdentityServer4.Admin.EntityFramework.Shared.DbContexts;
 using Skoruba.IdentityServer4.Admin.EntityFramework.Shared.Entities.Identity;
 using Swashbuckle.AspNetCore.Swagger;
+using Swashbuckle.AspNetCore.SwaggerGen;
 
 namespace Skoruba.IdentityServer4.Admin.Api
 {
@@ -75,18 +78,40 @@ namespace Skoruba.IdentityServer4.Admin.Api
 
             services.AddSwaggerGen(options =>
             {
-                options.SwaggerDoc(ApiConfigurationConsts.ApiVersionV1, new Info { Title = ApiConfigurationConsts.ApiName, Version = ApiConfigurationConsts.ApiVersionV1 });
-
-                options.AddSecurityDefinition("oauth2", new OAuth2Scheme
-                {
-                    Flow = "implicit",
-                    AuthorizationUrl = $"{adminApiConfiguration.IdentityServerBaseUrl}/connect/authorize",
-                    Scopes = new Dictionary<string, string> {
-                        { adminApiConfiguration.OidcApiName, ApiConfigurationConsts.ApiName }
-                    }
+                options.SwaggerDoc("IdentityServer", new OpenApiInfo {Title = ApiConfigurationConsts.ApiName, Version = ApiConfigurationConsts.ApiVersionV1 , Description = "" , TermsOfService = new Uri("https://pevaar.com/",UriKind.Absolute) ,
+                    Contact = new OpenApiContact
+                    {
+                        Name  = "Pevaar",
+                        Email = "saul.rodriguez@pevaar.com",
+                        Url = new Uri("https://pevaar.com/",UriKind.Absolute)
+                    },
+                    License = new OpenApiLicense
+                    {
+                        Name   = "LicenseV1",
+                        Url = new Uri("https://pevaar.com/",UriKind.Absolute)
+                    }        
                 });
+                
+                var secure = new OpenApiSecurityRequirement
+                {
+                    {
+                        new OpenApiSecurityScheme
+                        {
+                            Reference = new OpenApiReference { Type = ReferenceType.SecurityScheme, Id = "Bearer" }
+                        },
+                        new string[] { }
+                    }                
+                };
 
-                options.OperationFilter<AuthorizeCheckOperationFilter>();
+                options.AddSecurityDefinition("Bearer", new OpenApiSecurityScheme()
+                {
+                    Description = "JWT Authorization header using the Bearer scheme. Example: \"Authorization: Bearer {token}\"",
+                    Name = "Authorization",
+                    In = ParameterLocation.Header,
+                    Type = SecuritySchemeType.ApiKey
+                });
+                options.AddSecurityRequirement(secure);
+                options.DocumentFilter<SecurityRequirementsDocumentFilter>();
             });
         }
 
@@ -100,15 +125,37 @@ namespace Skoruba.IdentityServer4.Admin.Api
             app.UseAuthentication();
 
             app.UseSwagger();
-            app.UseSwaggerUI(c =>
+            app.UseSwaggerUI(options =>
             {
-                c.SwaggerEndpoint("/swagger/v1/swagger.json", ApiConfigurationConsts.ApiName);
-
-                c.OAuthClientId(adminApiConfiguration.OidcSwaggerUIClientId);
-                c.OAuthAppName(ApiConfigurationConsts.ApiName);
+                options.DisplayOperationId();
+                options.SwaggerEndpoint("/swagger/IdentityServer/swagger.json", "Read API V1");
+                options.RoutePrefix = string.Empty;
+                options.DocumentTitle = "IS API";
+                options.OAuthAppName("Demo API - Swagger");
             });
 
             app.UseMvc();
         }
+    }
+
+    public class SecurityRequirementsDocumentFilter : IDocumentFilter
+    {
+        public void Apply(OpenApiDocument document, DocumentFilterContext context)
+        {
+            document.SecurityRequirements = new List<OpenApiSecurityRequirement>
+                {
+                    new OpenApiSecurityRequirement
+                    {
+                        {
+                            new OpenApiSecurityScheme
+                            {
+                                Reference = new OpenApiReference { Type = ReferenceType.SecurityScheme, Id = "Bearer" }
+                            },
+                            new string[] { }
+                        }
+                    }
+                };
+        }
+
     }
 }

@@ -1,5 +1,7 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Reflection;
+using System.Text;
 using IdentityServer4.AccessTokenValidation;
 using IdentityServer4.EntityFramework.Storage;
 using Microsoft.AspNetCore.Builder;
@@ -9,6 +11,7 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection.Extensions;
+using Microsoft.IdentityModel.Tokens;
 using Skoruba.IdentityServer4.Admin.Api.Configuration;
 using Skoruba.IdentityServer4.Admin.Api.Configuration.ApplicationParts;
 using Skoruba.IdentityServer4.Admin.Api.Configuration.Constants;
@@ -128,6 +131,7 @@ namespace Skoruba.IdentityServer4.Admin.Api.Helpers
             where TRole : class 
             where TUser : class
         {
+            /*
             services.AddAuthentication(IdentityServerAuthenticationDefaults.AuthenticationScheme)
                 .AddIdentityServerAuthentication(options =>
                 {
@@ -136,6 +140,24 @@ namespace Skoruba.IdentityServer4.Admin.Api.Helpers
                     options.RequireHttpsMetadata = false;
 
 
+                });
+                */
+                
+                
+            var signingKey = new SymmetricSecurityKey(Encoding.ASCII.GetBytes("SECRET_KEY"));
+            services.AddAuthentication("Bearer")
+                .AddJwtBearer("Bearer", options =>
+                {
+                    options.Authority = "http://sts.test:88";
+                    options.RequireHttpsMetadata = false;
+                    options.Audience = "api1";
+                    options.TokenValidationParameters = new TokenValidationParameters
+                    {
+                        ValidateAudience = true,
+                        ValidateIssuer = true,
+                        ValidateIssuerSigningKey = true,
+                        IssuerSigningKeys = new List<SecurityKey> { signingKey }
+                    };
                 });
 
             services.AddIdentity<TUser, TRole>(options =>
