@@ -125,12 +125,25 @@ namespace Skoruba.IdentityServer4.Admin.Api.Helpers
         /// <typeparam name="TRole">Entity with Role</typeparam>
         /// <param name="services"></param>
         /// <param name="adminApiConfiguration"></param>
-        public static void AddApiAuthentication<TIdentityDbContext, TUser, TRole>(this IServiceCollection services) 
+        public static void AddApiAuthentication<TIdentityDbContext, TUser, TRole>(this IServiceCollection services,
+            AdminApiConfiguration adminApiConfiguration) 
             where TIdentityDbContext : DbContext 
             where TRole : class 
             where TUser : class
         {
-                               
+            /*
+            services.AddAuthentication(IdentityServerAuthenticationDefaults.AuthenticationScheme)
+                .AddIdentityServerAuthentication(options =>
+                {
+                    options.Authority = adminApiConfiguration.IdentityServerBaseUrl;
+                    options.ApiName = adminApiConfiguration.OidcApiName;
+                    options.RequireHttpsMetadata = false;
+
+
+                });
+                */
+                
+                
             var signingKey = new SymmetricSecurityKey(Encoding.ASCII.GetBytes("SECRET_KEY"));
             services.AddAuthentication("Bearer")
                 .AddJwtBearer("Bearer", options =>
