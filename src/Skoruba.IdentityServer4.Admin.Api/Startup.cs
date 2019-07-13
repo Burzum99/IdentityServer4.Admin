@@ -52,7 +52,7 @@ namespace Skoruba.IdentityServer4.Admin.Api
             services.AddDbContexts<AdminIdentityDbContext, IdentityServerConfigurationDbContext, IdentityServerPersistedGrantDbContext, AdminLogDbContext>(Configuration);
             services.AddScoped<ControllerExceptionFilterAttribute>();
 
-            services.AddApiAuthentication<AdminIdentityDbContext, UserIdentity, UserIdentityRole>(adminApiConfiguration);
+            services.AddApiAuthentication<AdminIdentityDbContext, UserIdentity, UserIdentityRole>();
             services.AddAuthorizationPolicies();
 
             var profileTypes = new HashSet<Type>
@@ -115,7 +115,7 @@ namespace Skoruba.IdentityServer4.Admin.Api
             });
         }
 
-        public void Configure(IApplicationBuilder app, IHostingEnvironment env, AdminApiConfiguration adminApiConfiguration)
+        public void Configure(IApplicationBuilder app, IHostingEnvironment env)
         {
             if (env.IsDevelopment())
             {
