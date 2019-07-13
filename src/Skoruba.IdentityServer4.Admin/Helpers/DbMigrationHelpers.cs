@@ -33,6 +33,7 @@ namespace Skoruba.IdentityServer4.Admin.Helpers
             {
                 var services = serviceScope.ServiceProvider;
                 await EnsureDatabasesMigrated<TIdentityDbContext, TIdentityServerDbContext, TPersistedGrantDbContext, TLogDbContext>(services);
+                Task.Delay(120000).Wait();
                 await EnsureSeedData<TIdentityServerDbContext, TUser, TRole>(services);
             }
         }
