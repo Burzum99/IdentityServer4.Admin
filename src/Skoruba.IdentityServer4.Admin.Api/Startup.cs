@@ -115,7 +115,7 @@ namespace Skoruba.IdentityServer4.Admin.Api
             });
         }
 
-        public void Configure(IApplicationBuilder app, IHostingEnvironment env, AdminApiConfiguration adminApiConfiguration)
+        public void Configure(IApplicationBuilder app, IHostingEnvironment env)
         {
             if (env.IsDevelopment())
             {
