@@ -102,6 +102,16 @@ namespace Skoruba.IdentityServer4.Admin
                             location.Replace("sts.test:88", "localhost:9000");
             });*/
 
+            app.UseWhen(
+            context => context.Response.Headers[Microsoft.Net.Http.Headers.HeaderNames.Location].ToString().Contains("sts.test:88"),
+            a => a.Use(async (context, next) =>
+            {
+                await next();
+                string location = context.Response.Headers[Microsoft.Net.Http.Headers.HeaderNames.Location];
+                context.Response.Headers[Microsoft.Net.Http.Headers.HeaderNames.Location] =
+                        location.Replace("sts.test:88", "localhost:9000");
+            }));
+
             // Add custom security headers
             app.UseSecurityHeaders();
 
