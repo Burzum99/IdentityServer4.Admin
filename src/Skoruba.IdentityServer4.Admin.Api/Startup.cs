@@ -46,8 +46,8 @@ namespace Skoruba.IdentityServer4.Admin.Api
 
         public void ConfigureServices(IServiceCollection services)
         {
-            var adminApiConfiguration = Configuration.GetSection(nameof(AdminApiConfiguration)).Get<AdminApiConfiguration>();
-            services.AddSingleton(adminApiConfiguration);
+            //var adminApiConfiguration = Configuration.GetSection(nameof(AdminApiConfiguration)).Get<AdminApiConfiguration>();
+            //services.AddSingleton(adminApiConfiguration);
 
             services.AddDbContexts<AdminIdentityDbContext, IdentityServerConfigurationDbContext, IdentityServerPersistedGrantDbContext, AdminLogDbContext>(Configuration);
             services.AddScoped<ControllerExceptionFilterAttribute>();
