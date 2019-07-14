@@ -7,15 +7,16 @@ namespace Skoruba.IdentityServer4.Admin
     public class IdentityServerRedirectMiddleware
     {
         private readonly RequestDelegate _next;
+        private bool hasRedirected;
         public IdentityServerRedirectMiddleware(RequestDelegate next)
         {
             _next = next;
+            hasRedirected = false;
         }
 
         public async Task Invoke(HttpContext context)
         {
-            Console.WriteLine(context.User.Identity.IsAuthenticated);
-            if (context.User.Identity.IsAuthenticated == false)
+            if (hasRedirected == false)
             {
                 await _next(context);
                 string location = context.Response.Headers[Microsoft.Net.Http.Headers.HeaderNames.Location];
@@ -24,6 +25,7 @@ namespace Skoruba.IdentityServer4.Admin
                 {
                     context.Response.Headers[Microsoft.Net.Http.Headers.HeaderNames.Location] = location.Replace("sts.test:88", "localhost:9000");
                 }
+                hasRedirected = true;
             }
         }
     }
