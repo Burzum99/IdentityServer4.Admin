@@ -97,12 +97,14 @@ namespace Skoruba.IdentityServer4.Admin
             app.Use(async (httpcontext, next) =>
             {
                 await next();
-                var isRedirect = true;
-                if (isRedirect)
+                if (httpcontext.Response.Headers[Microsoft.Net.Http.Headers.HeaderNames.Location].ToString().Contains("sts.test:88"))
                 {
                     string location = httpcontext.Response.Headers[Microsoft.Net.Http.Headers.HeaderNames.Location];
                     httpcontext.Response.Headers[Microsoft.Net.Http.Headers.HeaderNames.Location] = location.Replace("sts.test:88", "localhost:9000");
-                    isRedirect = false;
+                }
+                else
+                {
+                    await next();
                 }
             });
             /*
