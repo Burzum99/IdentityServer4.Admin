@@ -14,15 +14,17 @@ namespace Skoruba.IdentityServer4.Admin
 
         public async Task Invoke(HttpContext context)
         {
-            await _next(context);
-            string location = context.Response.Headers[Microsoft.Net.Http.Headers.HeaderNames.Location];
-            Console.WriteLine(location);
-            if (location.Contains("sts.test:88"))
+            Console.WriteLine(context.User.Identity.IsAuthenticated);
+            if (context.User.Identity.IsAuthenticated == false)
             {
-                context.Response.Headers[Microsoft.Net.Http.Headers.HeaderNames.Location] = location.Replace("sts.test:88", "localhost:9000");
+                await _next(context);
+                string location = context.Response.Headers[Microsoft.Net.Http.Headers.HeaderNames.Location];
+                Console.WriteLine(location);
+                if (location.Contains("sts.test:88"))
+                {
+                    context.Response.Headers[Microsoft.Net.Http.Headers.HeaderNames.Location] = location.Replace("sts.test:88", "localhost:9000");
+                }
             }
-            await _next(context);
-
         }
     }
 }
