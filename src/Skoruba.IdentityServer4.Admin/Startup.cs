@@ -93,14 +93,18 @@ namespace Skoruba.IdentityServer4.Admin
             {
                 app.UseExceptionHandler("/Home/Error");
             }
-            /*
+            
             app.Use(async (httpcontext, next) =>
             {
-                    await next();
+                await next();
+                var isRedirect = true;
+                if (isRedirect)
+                {
                     string location = httpcontext.Response.Headers[Microsoft.Net.Http.Headers.HeaderNames.Location];
-                    httpcontext.Response.Headers[Microsoft.Net.Http.Headers.HeaderNames.Location] =
-                            location.Replace("sts.test:88", "localhost:9000");
-            });*/
+                    httpcontext.Response.Headers[Microsoft.Net.Http.Headers.HeaderNames.Location] = location.Replace("sts.test:88", "localhost:9000");
+                    isRedirect = false;
+                }
+            });
             /*
             app.UseWhen(
             context => context.Response.Headers[Microsoft.Net.Http.Headers.HeaderNames.Location].ToString().Contains("sts.test:88"),
@@ -117,7 +121,6 @@ namespace Skoruba.IdentityServer4.Admin
 
             app.UseStaticFiles();
 
-            app.UseIdentityServerRedirect();
             // Use authentication and for integration tests use custom middleware which is used only in Staging environment
             app.ConfigureAuthenticationServices(env);
 
