@@ -21,6 +21,8 @@ namespace Skoruba.IdentityServer4.Admin
             {
                 context.Response.Headers[Microsoft.Net.Http.Headers.HeaderNames.Location] = location.Replace("sts.test:88", "localhost:9000");
             }
+            await _next(context);
+
         }
     }
 }
